@@ -140,6 +140,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
+
     steps:
       - name: Instalar Cosign
         uses: sigstore/cosign-installer@v3.5.0
@@ -152,11 +153,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Firmar Imagen mediante Sigstore (OIDC Keyless)
-          run: |
-            IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+        shell: bash
+        run: |
+          IMAGE_NAME_LOWER="$(printf '%s' "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          IMAGE_REF="${REGISTRY}/${IMAGE_NAME_LOWER}:sha-${GITHUB_SHA}"
 
-            # Docker exige que el nombre del repositorio esté en minúsculas.
-            IMAGE_REF="${IMAGE_REF,,}"
-
-            echo "Firmando imagen: $IMAGE_REF"
-            cosign sign --yes "$IMAGE_REF"
+          echo "Firmando imagen: ${IMAGE_REF}"
+          cosign sign --yes "${IMAGE_REF}"
